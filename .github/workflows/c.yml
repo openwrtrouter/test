@@ -26,20 +26,7 @@ jobs:
     - name: Clone source code
       run: |
         git clone https://github.com/coolsnowwolf/lede lede
-    - name: Update feeds
-      run: cd lede && ./scripts/feeds update -a
-
-    - name: Install feeds
-      run: cd lede && ./scripts/feeds install -a
-
-    - name: Load custom configuration
-      run: |
-        cp -f k2.config ./lede/.config
-        chmod +x diy.sh
-        cd lede
-        ../diy.sh
-        make defconfig
-
+        
     - name : Upload artifact
       uses: actions/upload-artifact@master
       with:
