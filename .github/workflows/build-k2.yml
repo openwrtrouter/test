@@ -70,7 +70,7 @@ jobs:
       uses: actions/upload-artifact@master
       with:
         name: K2-Test
-        path: ./lede/package
+        path: ./lede/scripts
       
     - name: Push Result
       run : |
@@ -79,11 +79,10 @@ jobs:
         cd release && [[ -d k2 ]] || mkdir k2
         cd k2  && [[ -d $DISTRIB_REVISION ]] || mkdir $DISTRIB_REVISION
         cd ../../
-        cp -rf ./lede/bin/* release/k2/$DISTRIB_REVISION/
+        cp -rf ./lede/scripts/* release/k2/$DISTRIB_REVISION/
         git config --local user.email "yuwenzhen@qq.com"
         git config --local user.name "RexYu"
         echo $(ls -l | awk '/^d/{print $NF}')
-        git pull
         git add release 2>&1
         cd release
         git commit -m 'commit k2 '$DISTRIB_REVISION 
