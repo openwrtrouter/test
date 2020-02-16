@@ -33,8 +33,11 @@ jobs:
         name: K2
         path: ./lede/scripts
   
-    - name: Checkout
-      uses: actions/checkout@master
+    - name: Checkout2
+      uses: actions/checkout@v2
+      with:
+        path: my-tools
+    - run: pwd
       
     - name: Push Result
       run : |
