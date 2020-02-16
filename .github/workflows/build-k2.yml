@@ -83,7 +83,9 @@ jobs:
         name: K2
         path: ./lede/bin
       
-    
+    - run: |
+        git config --local user.email "yuwenzhen@qq.com"
+        git config --local user.name "RexYu"
     - name: Checkout2
       uses: actions/checkout@v2
       with:
