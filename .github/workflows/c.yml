@@ -21,33 +21,73 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@master
+
+    - name: Initialization environment
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        docker rmi `docker images -q`
+        echo "Deleting files, please wait ..."
+        sudo rm -rf \
+          /usr/share/dotnet \
+          /etc/mysql \
+          /etc/php
+        sudo -E apt-get -y purge \
+          azure-cli \
+          ghc* \
+          zulu* \
+          hhvm \
+          llvm* \
+          firefox \
+          google* \
+          dotnet* \
+          powershell \
+          openjdk* \
+          mysql* \
+          php*
+        sudo -E apt-get update
+        sudo -E apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler u-boot-tools
+        sudo -E apt-get -y autoremove --purge
+        sudo -E apt-get clean
         
     - name: Clone source code
       run: |
         git clone https://github.com/coolsnowwolf/lede lede
     - name: Update feeds
       run: cd lede && ./scripts/feeds update -a
-      
+
+    - name: Install feeds
+      run: cd lede && ./scripts/feeds install -a
+
+    - name: Load custom configuration
+      run: |
+        cp -f k2.config ./lede/.config
+        chmod +x diy.sh
+        cd lede
+        ../diy.sh
+        make defconfig
+
     - name : Upload artifact
       uses: actions/upload-artifact@master
       with:
-        name: K2-Test
+        name: K2
         path: ./lede/scripts
+      
     - name: Push Result
       run : |
         DISTRIB_REVISION=`grep 'DISTRIB_REVISION=' ./lede/package/lean/default-settings/files/zzz-default-settings  | awk -v head="DISTRIB_REVISION='" -v tail="'\"" '{print substr($0, index($0,head)+length(head),index($0,tail)-index($0,head)-length(head))}'`
         [[ -d release ]] || mkdir release
-        cd release && [[ -d k3 ]] || mkdir k3
-        cd k3  && [[ -d $DISTRIB_REVISION ]] || mkdir $DISTRIB_REVISION
+        cd release && [[ -d k2 ]] || mkdir k2
+        cd k2  && [[ -d $DISTRIB_REVISION ]] || mkdir $DISTRIB_REVISION
         cd ../../
-        cp -rf ./lede/scripts/* release/k3/$DISTRIB_REVISION/
+        cp -rf ./lede/scripts/* release/k2/$DISTRIB_REVISION/
         git config --local user.email "yuwenzhen@qq.com"
         git config --local user.name "RexYu"
         echo $(ls -l | awk '/^d/{print $NF}')
         git pull
-        git add release
+        git add release 2>&1
         cd release
-        git commit -m 'commit '$DISTRIB_REVISION 
+        git commit -m 'commit k2 '$DISTRIB_REVISION 
         
     - name: Push changes
       uses: ad-m/github-push-action@master
