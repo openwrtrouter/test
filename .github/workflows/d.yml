@@ -1,0 +1,27 @@
+name: Build K2
+
+on: 
+  release:
+    types: [published]
+  push:
+    branches: 
+      - master
+    paths:
+      - '**/d.yml'
+      
+ jobs:
+  build:
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@master
+
+ jobs:
+  upload:
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: SSH connection to Actions
+      uses: P3TERX/debugger-action@master
+      
