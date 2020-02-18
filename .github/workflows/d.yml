@@ -17,7 +17,6 @@ on:
     - name: Checkout
       uses: actions/checkout@master
 
- jobs:
   upload:
     runs-on: ubuntu-18.04
 
