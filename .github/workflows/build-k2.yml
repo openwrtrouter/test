@@ -19,14 +19,16 @@ jobs:
     runs-on: ubuntu-18.04
 
     steps:
-    - name: SSH connection to Actions
-      uses: P3TERX/debugger-action@master
-      
     - name: Checkout
       uses: actions/checkout@master
-      with:
-        path: ../rom
 
+    - run: |
+        git config --local user.email "yuwenzhen@qq.com"
+        git config --local user.name "RexYu"
+    - name: Checkout3
+      uses: actions/checkout@v2
+      with:
+        path: ./rom2
     - name: Initialization environment
       env:
         DEBIAN_FRONTEND: noninteractive
@@ -56,16 +58,15 @@ jobs:
         sudo -E apt-get clean
     - name: Clone source code
       run: |
-        git clone https://github.com/coolsnowwolf/lede ../rom/lede
+        git clone https://github.com/coolsnowwolf/lede lede
     - name: Update feeds
-      run: cd ../rom/lede && ./scripts/feeds update -a
+      run: cd lede && ./scripts/feeds update -a
 
     - name: Install feeds
-      run: cd ../rom/lede && ./scripts/feeds install -a
+      run: cd lede && ./scripts/feeds install -a
 
     - name: Load custom configuration
       run: |
-        cd ../rom/
         cp -f k2.config ./lede/.config
         chmod +x diy.sh
         cd lede
@@ -74,12 +75,12 @@ jobs:
     - name: Download package
       run: |
         echo -e "$(nproc) thread build."
-        cd ../rom/lede && make download -j$(nproc)
+        cd lede && make download -j$(nproc)
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
     - name: Build
       run: |
-        cd ../rom/lede
+        cd lede
         echo -e "$(nproc) thread build."
         make -j$(nproc) V=s
         
@@ -87,21 +88,24 @@ jobs:
       uses: actions/upload-artifact@master
       with:
         name: K2
-        path: ../rom/lede/bin
+        path: ./lede/bin
       
     - run: |
         git config --local user.email "yuwenzhen@qq.com"
         git config --local user.name "RexYu"
     - name: Checkout2
       uses: actions/checkout@v2
+      with:
+        path: ./rom
     - name: Push Result
       run : |
-        DISTRIB_REVISION=`grep 'DISTRIB_REVISION=' ../rom/lede/package/lean/default-settings/files/zzz-default-settings  | awk -v head="DISTRIB_REVISION='" -v tail="'\"" '{print substr($0, index($0,head)+length(head),index($0,tail)-index($0,head)-length(head))}'`
+        cd rom
+        DISTRIB_REVISION=`grep 'DISTRIB_REVISION=' ../lede/package/lean/default-settings/files/zzz-default-settings  | awk -v head="DISTRIB_REVISION='" -v tail="'\"" '{print substr($0, index($0,head)+length(head),index($0,tail)-index($0,head)-length(head))}'`
         [[ -d release ]] || mkdir release
         cd release && [[ -d k2 ]] || mkdir k2
         cd k2  && [[ -d $DISTRIB_REVISION ]] || mkdir $DISTRIB_REVISION
         cd ../../
-        cp -rf ../rom/lede/bin/* ./release/k2/$DISTRIB_REVISION/
+        cp -rf ../lede/bin/* ./release/k2/$DISTRIB_REVISION/
         git config --local user.email "yuwenzhen@qq.com"
         git config --local user.name "RexYu"
         git pull
