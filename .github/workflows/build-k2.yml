@@ -22,7 +22,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@master
       with:
-        token: ${{ secrets.SECRET_NAME.CI }}
+        token: ${{ secrets.CI }}
 
     - run: |
         git config --local user.email "yuwenzhen@qq.com"
