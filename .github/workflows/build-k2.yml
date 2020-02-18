@@ -21,12 +21,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@master
-      with:
-         token: ${{ secrets.ACCESS_TOKEN }}
-
-    - run: |
-        git config --local user.email "yuwenzhen@qq.com"
-        git config --local user.name "RexYu"
   
     - name: Initialization environment
       env:
@@ -88,20 +82,47 @@ jobs:
       with:
         name: K2
         path: ./lede/bin
+
+    - name: Cache result
+      id: cache-lede
+      uses: actions/cache@v1
+      with:
+        path: cache
+        key: ${{ runner.os }}-k2-build
+    - name: Copy file
+      run: |
+         [[ -d cache ]] || mkdir cache
+         cd cache 
+         DISTRIB_REVISION=`grep 'DISTRIB_REVISION=' ./lede/package/lean/default-settings/files/zzz-default-settings  | awk -v head="DISTRIB_REVISION='" -v tail="'\"" '{print substr($0, index($0,head)+length(head),index($0,tail)-index($0,head)-length(head))}'`
+         echo $DISTRIB_REVISION > VERSION
+         cp -rf ../lede/bin ./
+        
+  upload:
+    needs: build
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@master
       
+    - name: Cache restore
+      id: cache-lede
+      uses: actions/cache@v1
+      with:
+        path: cache
+        key: ${{ runner.os }}-k2-build
     - name: Push Result
       run : |
-        DISTRIB_REVISION=`grep 'DISTRIB_REVISION=' ./lede/package/lean/default-settings/files/zzz-default-settings  | awk -v head="DISTRIB_REVISION='" -v tail="'\"" '{print substr($0, index($0,head)+length(head),index($0,tail)-index($0,head)-length(head))}'`
+        DISTRIB_REVISION=`cat cache/VERSION`
         [[ -d release ]] || mkdir release
         cd release && [[ -d k2 ]] || mkdir k2
         cd k2  && [[ -d $DISTRIB_REVISION ]] || mkdir $DISTRIB_REVISION
         cd ../../
-        cp -rf ./lede/bin/* ./release/k2/$DISTRIB_REVISION/
+        cp -rf ./cache/bin/* ./release/k2/$DISTRIB_REVISION/
         git config --local user.email "yuwenzhen@qq.com"
         git config --local user.name "RexYu"
         git pull
         echo step pull end
-        git add release 2>&1
+        git add release
         echo add  end
         cd release
         echo release  end
