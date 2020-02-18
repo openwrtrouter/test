@@ -22,15 +22,12 @@ jobs:
     - name: Checkout
       uses: actions/checkout@master
       with:
-         ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+         token: ${{ secrets.ACCESS_TOKEN }}
 
     - run: |
         git config --local user.email "yuwenzhen@qq.com"
         git config --local user.name "RexYu"
-    - name: Checkout3
-      uses: actions/checkout@v2
-      with:
-        path: ./rom2
+  
     - name: Initialization environment
       env:
         DEBIAN_FRONTEND: noninteractive
@@ -92,22 +89,14 @@ jobs:
         name: K2
         path: ./lede/bin
       
-    - run: |
-        git config --local user.email "yuwenzhen@qq.com"
-        git config --local user.name "RexYu"
-    - name: Checkout2
-      uses: actions/checkout@v2
-      with:
-        path: ./rom
     - name: Push Result
       run : |
-        cd rom
-        DISTRIB_REVISION=`grep 'DISTRIB_REVISION=' ../lede/package/lean/default-settings/files/zzz-default-settings  | awk -v head="DISTRIB_REVISION='" -v tail="'\"" '{print substr($0, index($0,head)+length(head),index($0,tail)-index($0,head)-length(head))}'`
+        DISTRIB_REVISION=`grep 'DISTRIB_REVISION=' ./lede/package/lean/default-settings/files/zzz-default-settings  | awk -v head="DISTRIB_REVISION='" -v tail="'\"" '{print substr($0, index($0,head)+length(head),index($0,tail)-index($0,head)-length(head))}'`
         [[ -d release ]] || mkdir release
         cd release && [[ -d k2 ]] || mkdir k2
         cd k2  && [[ -d $DISTRIB_REVISION ]] || mkdir $DISTRIB_REVISION
         cd ../../
-        cp -rf ../lede/bin/* ./release/k2/$DISTRIB_REVISION/
+        cp -rf ./lede/bin/* ./release/k2/$DISTRIB_REVISION/
         git config --local user.email "yuwenzhen@qq.com"
         git config --local user.name "RexYu"
         git pull
