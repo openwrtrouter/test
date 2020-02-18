@@ -8,8 +8,7 @@ on:
       - master
     paths:
       - '**/d.yml'
-      
- jobs:
+jobs:
   build:
     runs-on: ubuntu-18.04
 
