@@ -21,6 +21,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@master
+      with:
+        path: ../rom
 
     - name: Initialization environment
       env:
@@ -51,15 +53,16 @@ jobs:
         sudo -E apt-get clean
     - name: Clone source code
       run: |
-        git clone https://github.com/coolsnowwolf/lede lede
+        git clone https://github.com/coolsnowwolf/lede ../rom/lede
     - name: Update feeds
-      run: cd lede && ./scripts/feeds update -a
+      run: cd ../rom/lede && ./scripts/feeds update -a
 
     - name: Install feeds
-      run: cd lede && ./scripts/feeds install -a
+      run: cd ../rom/lede && ./scripts/feeds install -a
 
     - name: Load custom configuration
       run: |
+        cd ../rom/
         cp -f k2.config ./lede/.config
         chmod +x diy.sh
         cd lede
@@ -68,12 +71,12 @@ jobs:
     - name: Download package
       run: |
         echo -e "$(nproc) thread build."
-        cd lede && make download -j$(nproc)
+        cd ../rom/lede && make download -j$(nproc)
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
     - name: Build
       run: |
-        cd lede
+        cd ../rom/lede
         echo -e "$(nproc) thread build."
         make -j$(nproc) V=s
         
@@ -81,24 +84,21 @@ jobs:
       uses: actions/upload-artifact@master
       with:
         name: K2
-        path: ./lede/bin
+        path: ../rom/lede/bin
       
     - run: |
         git config --local user.email "yuwenzhen@qq.com"
         git config --local user.name "RexYu"
     - name: Checkout2
       uses: actions/checkout@v2
-      with:
-        path: rom
     - name: Push Result
       run : |
-        cd rom
-        DISTRIB_REVISION=`grep 'DISTRIB_REVISION=' ../lede/package/lean/default-settings/files/zzz-default-settings  | awk -v head="DISTRIB_REVISION='" -v tail="'\"" '{print substr($0, index($0,head)+length(head),index($0,tail)-index($0,head)-length(head))}'`
+        DISTRIB_REVISION=`grep 'DISTRIB_REVISION=' ../rom/lede/package/lean/default-settings/files/zzz-default-settings  | awk -v head="DISTRIB_REVISION='" -v tail="'\"" '{print substr($0, index($0,head)+length(head),index($0,tail)-index($0,head)-length(head))}'`
         [[ -d release ]] || mkdir release
         cd release && [[ -d k2 ]] || mkdir k2
         cd k2  && [[ -d $DISTRIB_REVISION ]] || mkdir $DISTRIB_REVISION
         cd ../../
-        cp -rf ../lede/bin/* ./release/k2/$DISTRIB_REVISION/
+        cp -rf ../rom/lede/bin/* ./release/k2/$DISTRIB_REVISION/
         git config --local user.email "yuwenzhen@qq.com"
         git config --local user.name "RexYu"
         git pull
