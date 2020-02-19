@@ -63,10 +63,11 @@ jobs:
 
     - name: Load custom configuration
       run: |
-        cp -f gdockfull128.config ./lede/.config
+        cp -f dock.config ./lede/.config
         chmod +x diy.sh
         cd lede
         ../diy.sh
+        make defconfig
     - name: Download package
       run: |
         echo -e "$(nproc) thread build."
