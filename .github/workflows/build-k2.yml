@@ -30,7 +30,7 @@ jobs:
       run: |
         git config --local user.email "yuwenzhen@qq.com"
         git config --local user.name "RexYu"
-        git clone https://github.com/rexyu/dl dl
+        git clone yuwenzhen@qq.com@https://github.com/rexyu/dl dl
         cd lede && ln -s ../dl dl
         
     - name: Initialization environment
