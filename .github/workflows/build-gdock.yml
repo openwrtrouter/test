@@ -63,7 +63,7 @@ jobs:
 
     - name: Load custom configuration
       run: |
-        cp -f dock.config ./lede/.config
+        cp -f gdock.config ./lede/.config
         chmod +x diy.sh
         cd lede
         ../diy.sh
