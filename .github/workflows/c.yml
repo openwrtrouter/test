@@ -22,11 +22,15 @@ jobs:
     - name: Checkout
       uses: actions/checkout@master
 
+     
+    - name: Clone dl
+      run: |
+        git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/rexyu/dl
+     
         
     - name: Clone source code
       run: |
-        git clone https://github.com/coolsnowwolf/lede lede
-        
+        git clone https://github.com/coolsnowwolf/lede lede   
     - name : Upload artifact
       uses: actions/upload-artifact@master
       with:
