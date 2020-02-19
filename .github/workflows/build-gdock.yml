@@ -21,7 +21,16 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@master
-
+          
+    - name: Clone source code
+      run: |
+        git clone https://github.com/coolsnowwolf/lede lede
+        
+    - name: Clone dl
+      run: |
+        git clone https://github.com/rexyu/dl dl
+        cd lede && ln -s ../dl dl
+        
     - name: Initialization environment
       env:
         DEBIAN_FRONTEND: noninteractive
@@ -49,11 +58,7 @@ jobs:
         sudo -E apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler u-boot-tools
         sudo -E apt-get -y autoremove --purge
         sudo -E apt-get clean
-
-    - name: Clone source code
-      run: |
-        git clone https://github.com/coolsnowwolf/lede lede
-
+        
     - name: Update feeds
       run: cd lede && ./scripts/feeds update -a
 
@@ -67,39 +72,67 @@ jobs:
         cd lede
         ../diy.sh
         make defconfig
-
     - name: Download package
       run: |
         echo -e "$(nproc) thread build."
         cd lede && make download -j$(nproc)
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
-
     - name: Build
       run: |
         cd lede
         echo -e "$(nproc) thread build."
-        make -j1 V=s
-
+        make -j$(nproc) V=s
+        
     - name : Upload artifact
       uses: actions/upload-artifact@master
       with:
         name: G-DOCK
         path: ./lede/bin
+
+    - name: Cache result
+      id: cache-lede
+      uses: actions/cache@v1
+      with:
+        path: cache
+        key: ${{ github.action_id }}-gdock-result
+    - name: Copy file
+      run: |
+         [[ -d cache ]] || mkdir cache
+         DISTRIB_REVISION=`grep 'DISTRIB_REVISION=' ./lede/package/lean/default-settings/files/zzz-default-settings  | awk -v head="DISTRIB_REVISION='" -v tail="'\"" '{print substr($0, index($0,head)+length(head),index($0,tail)-index($0,head)-length(head))}'`
+         cd cache 
+         echo $DISTRIB_REVISION > VERSION
+         cp -rf ../lede/bin/ ./
+        
+  upload:
+    needs: build
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@master
       
+    - name: Cache restore
+      id: cache-lede
+      uses: actions/cache@v1
+      with:
+        path: cache
+        key: ${{ github.action_id }}-gdock-result
     - name: Push Result
       run : |
-        DISTRIB_REVISION=`grep 'DISTRIB_REVISION=' ./lede/package/lean/default-settings/files/zzz-default-settings  | awk -v head="DISTRIB_REVISION='" -v tail="'\"" '{print substr($0, index($0,head)+length(head),index($0,tail)-index($0,head)-length(head))}'`
+        DISTRIB_REVISION=`cat cache/VERSION`
         [[ -d release ]] || mkdir release
         cd release && [[ -d gdock ]] || mkdir gdock
-        cd gdock && [[ -d $DISTRIB_REVISION ]] || mkdir $DISTRIB_REVISION
+        cd gdock  && [[ -d $DISTRIB_REVISION ]] || mkdir $DISTRIB_REVISION
         cd ../../
-        cp -rf ./lede/bin/* release/gdock/$DISTRIB_REVISION/
-        git config --global user.email "yuwenzhen@qq.com"
-        git config --global user.name "RexYu"
-        echo $(ls -l | awk '/^d/{print $NF}')
+        cp -rf ./cache/bin/* ./release/gdock/$DISTRIB_REVISION/
+        cp -f gdockfull128.config ./release/gdock/$DISTRIB_REVISION/
+        git config --local user.email "yuwenzhen@qq.com"
+        git config --local user.name "RexYu"
         git pull
         git add release
-        cd release
-        git commit -m 'commit '$DISTRIB_REVISION
-        git push
+        git commit -m 'commit gdock '$DISTRIB_REVISION 
+        
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
