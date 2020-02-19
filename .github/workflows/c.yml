@@ -25,7 +25,7 @@ jobs:
      
     - name: Clone dl
       run: |
-        git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/rexyu/dl
+        git clone https://${{ secrets.REPO_ACCESS }}@github.com/rexyu/dl
      
         
     - name: Clone source code
