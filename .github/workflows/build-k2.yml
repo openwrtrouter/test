@@ -52,6 +52,12 @@ jobs:
     - name: Clone source code
       run: |
         git clone https://github.com/coolsnowwolf/lede lede
+        
+    - name: Clone dl
+      run: |
+        git clone https://github.com/rexyu/dl.git dl
+        cd lede && ln -s ../dl dl
+        
     - name: Update feeds
       run: cd lede && ./scripts/feeds update -a
 
