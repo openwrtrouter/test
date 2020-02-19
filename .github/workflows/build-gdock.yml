@@ -25,11 +25,7 @@ jobs:
     - name: Clone source code
       run: |
         git clone https://github.com/coolsnowwolf/lede lede
-        
-    - name: Clone dl
-      run: |
-        git clone https://github.com/rexyu/dl dl
-        cd lede && ln -s ../dl dl
+
         
     - name: Initialization environment
       env:
