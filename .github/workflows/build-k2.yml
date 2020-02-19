@@ -118,6 +118,7 @@ jobs:
         cd k2  && [[ -d $DISTRIB_REVISION ]] || mkdir $DISTRIB_REVISION
         cd ../../
         cp -rf ./cache/bin/* ./release/k2/$DISTRIB_REVISION/
+        cp -f k2.config ./release/k2/$DISTRIB_REVISION/
         git config --local user.email "yuwenzhen@qq.com"
         git config --local user.name "RexYu"
         git pull
