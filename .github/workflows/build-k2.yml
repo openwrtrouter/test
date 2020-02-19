@@ -125,7 +125,9 @@ jobs:
         git add release
         echo add  end
         cd release
-        echo release  end
         git commit -m 'commit k2 '$DISTRIB_REVISION 
-        echo commit  end
-        git push
+        
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
